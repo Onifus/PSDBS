@@ -1,42 +1,98 @@
-/* Základní nastavení */
+/* Nastavení těla stránky */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    background-color: #f4f6f8;
+    color: #ffffff;
     margin: 0;
+    background: linear-gradient(135deg, #0f0f3e, #242468);
+    overflow-x: hidden;
 }
 
-/* Hero sekce s pozadím */
+/* Záhlaví s futuristickým stylem */
+.header {
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.logo {
+    font-size: 2em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.nav-link {
+    color: #aaa;
+    margin-left: 20px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: #00ffcc;
+}
+
+/* Úvodní část s neonovými prvky */
 .hero {
-    background-image: url('background.webp');
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: overlay;
+    height: 90vh;
+    background: url('/mnt/data/A_high-resolution_background_image_representing_co.png') no-repeat center center/cover;
+    position: relative;
     color: #ffffff;
-    padding: 100px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
 }
 
-/* Karty s obrázky a hover efektem */
-.card {
-    border: none;
-    transition: transform 0.3s;
+.hero-content {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
 }
 
-.card:hover {
+.btn-glow {
+    background: #00ffcc;
+    color: #000;
+    font-size: 1.2em;
+    padding: 10px 20px;
+    border-radius: 25px;
+    box-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 30px #00ffcc, 0 0 40px #00ffcc;
+}
+
+/* Sekce podstránek */
+.section-title {
+    color: #00ffcc;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.futuristic-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 30px rgba(0, 255, 204, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.futuristic-card:hover {
     transform: scale(1.05);
+    box-shadow: 0 6px 35px rgba(0, 255, 204, 0.4);
 }
 
 .card-title {
+    color: #00ffcc;
+    font-size: 1.5em;
     font-weight: bold;
 }
 
-.card img {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-}
-
-/* Footer */
-footer nav a:hover {
-    text-decoration: underline;
+/* Futuristické zápatí */
+.footer {
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
 }
