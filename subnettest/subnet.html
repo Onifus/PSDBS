@@ -43,6 +43,10 @@
 <body>
     <h1>Generátor a kontrola IP adres</h1>
 
+    <!-- Tlačítko pro generování počátečního rozsahu -->
+    <button class="generate-btn" onclick="generateInitialRange()">Generovat počáteční adresní rozsah</button>
+    <p id="initialRange">Počáteční adresní rozsah: </p>
+
     <button class="generate-btn" onclick="generateSubnets()">Generovat subnety</button>
     <button class="check-btn" onclick="checkAnswers()">Kontrola</button>
 
@@ -67,10 +71,29 @@
 
     <script>
         let subnets = [];
-        let networkRange = '172.16.0.0/16';  // Počáteční rozsah
+        let networkRange = ''; // Počáteční rozsah bude generován
+
+        // Funkce pro generování počátečního adresního rozsahu
+        function generateInitialRange() {
+            const firstOctet = Math.floor(Math.random() * 256);
+            const secondOctet = Math.floor(Math.random() * 256);
+            const thirdOctet = Math.floor(Math.random() * 256);
+            const fourthOctet = Math.floor(Math.random() * 256);
+
+            // Generování náhodné délky prefixu mezi 16 a 24
+            const prefixLength = Math.floor(Math.random() * 9) + 16;
+
+            networkRange = `${firstOctet}.${secondOctet}.${thirdOctet}.${fourthOctet}/${prefixLength}`;
+            document.getElementById('initialRange').textContent = `Počáteční adresní rozsah: ${networkRange}`;
+        }
 
         // Funkce pro generování subnetů a hostů
         function generateSubnets() {
+            if (!networkRange) {
+                alert('Nejdříve musíte generovat počáteční adresní rozsah!');
+                return;
+            }
+
             const numSubnets = Math.floor(Math.random() * 3) + 3;  // Minimálně 3 subnety
             const hostsTable = document.getElementById('subnetsTable').getElementsByTagName('tbody')[0];
             hostsTable.innerHTML = '';  // Vyprázdnění tabulky před generováním nových subnetů
