@@ -4,63 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Výuka Sítí a Subnettingu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Záhlaví -->
-    <header>
-        <div class="logo">NetLearn</div>
-        <nav>
-            <a href="#home">Domů</a>
-            <a href="#courses">Lekce</a>
-            <a href="#tools">Nástroje</a>
-            <a href="#contact">Kontakt</a>
-        </nav>
+    <header class="bg-primary text-white p-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 class="logo">NetLearn</h1>
+            <nav>
+                <a href="#home" class="text-white mx-2">Domů</a>
+                <a href="#courses" class="text-white mx-2">Lekce</a>
+                <a href="#tools" class="text-white mx-2">Nástroje</a>
+                <a href="#contact" class="text-white mx-2">Kontakt</a>
+            </nav>
+        </div>
     </header>
 
     <!-- Úvodní část -->
-    <section class="hero">
-        <h1>Staň se mistrem v sítích a subnettingu!</h1>
-        <p>Praktické lekce, interaktivní nástroje a přehledné návody, které tě naučí všechno o sítích.</p>
-        <a href="#courses" class="cta-button">Začít se učit</a>
+    <section class="hero bg-dark text-white text-center py-5" style="background-image: url('/mnt/data/A_stylish_web_design_homepage_for_a_network_and_su.png'); background-size: cover; background-position: center;">
+        <div class="container">
+            <h1 class="display-4">Staň se mistrem v sítích a subnettingu!</h1>
+            <p class="lead">Praktické lekce, interaktivní nástroje a přehledné návody, které tě naučí všechno o sítích.</p>
+            <a href="#courses" class="btn btn-success btn-lg mt-3">Začít se učit</a>
+        </div>
     </section>
 
     <!-- Sekce Podstránek -->
-    <section class="content">
-        <h2>Co se naučíte</h2>
-        <div class="cards">
-            <div class="card">
-                <h3>Základy sítí</h3>
-                <p>Naučte se základy IP adres, masky podsítě a základní topologie sítí.</p>
-                <a href="#network-basics" class="card-button">Začít</a>
-            </div>
-            <div class="card">
-                <h3>Subnetting</h3>
-                <p>Osvojte si výpočty pro subnety, CIDR a masky.</p>
-                <a href="#subnetting" class="card-button">Začít</a>
-            </div>
-            <div class="card">
-                <h3>Pokročilé protokoly</h3>
-                <p>Poznajte pokročilé síťové protokoly jako DHCP, DNS a BGP.</p>
-                <a href="#advanced-protocols" class="card-button">Začít</a>
-            </div>
-            <div class="card">
-                <h3>Nástroje</h3>
-                <p>Využijte kalkulačky pro subnetting, ping testery a IP skenery.</p>
-                <a href="#tools" class="card-button">Prozkoumat</a>
+    <section class="content py-5">
+        <div class="container text-center">
+            <h2 class="mb-5">Co se naučíte</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title text-primary">Základy sítí</h3>
+                            <p>Naučte se základy IP adres, masky podsítě a základní topologie sítí.</p>
+                            <a href="#network-basics" class="btn btn-primary">Začít</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title text-primary">Subnetting</h3>
+                            <p>Osvojte si výpočty pro subnety, CIDR a masky.</p>
+                            <a href="#subnetting" class="btn btn-primary">Začít</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title text-primary">Pokročilé protokoly</h3>
+                            <p>Poznajte pokročilé síťové protokoly jako DHCP, DNS a BGP.</p>
+                            <a href="#advanced-protocols" class="btn btn-primary">Začít</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title text-primary">Nástroje</h3>
+                            <p>Využijte kalkulačky pro subnetting, ping testery a IP skenery.</p>
+                            <a href="#tools" class="btn btn-primary">Prozkoumat</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Dolní část stránky -->
-    <footer>
-        <p>&copy; 2024 NetLearn. Všechna práva vyhrazena.</p>
-        <nav>
-            <a href="#about">O nás</a>
-            <a href="#faq">FAQ</a>
-            <a href="#privacy">Zásady ochrany osobních údajů</a>
-            <a href="#contact">Kontakt</a>
-        </nav>
+    <footer class="bg-dark text-white py-3">
+        <div class="container text-center">
+            <p>&copy; 2024 NetLearn. Všechna práva vyhrazena.</p>
+            <nav>
+                <a href="#about" class="text-white mx-2">O nás</a>
+                <a href="#faq" class="text-white mx-2">FAQ</a>
+                <a href="#privacy" class="text-white mx-2">Zásady ochrany osobních údajů</a>
+                <a href="#contact" class="text-white mx-2">Kontakt</a>
+            </nav>
+        </div>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
