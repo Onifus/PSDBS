@@ -17,11 +17,7 @@ body {
     text-align: center;
 }
 
-.logo {
-    font-size: 1.75em;
-    font-weight: bold;
-}
-
+/* Karty s obrázky a hover efektem */
 .card {
     border: none;
     transition: transform 0.3s;
@@ -35,6 +31,12 @@ body {
     font-weight: bold;
 }
 
+.card img {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+/* Footer */
 footer nav a:hover {
     text-decoration: underline;
 }
