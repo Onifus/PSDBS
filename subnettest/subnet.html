@@ -3,188 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generátor a kontrola IP adres</title>
+    <title>Rozdělení adresního rozsahu</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
         table {
             width: 100%;
-            margin-bottom: 20px;
             border-collapse: collapse;
         }
         th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: center;
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
         }
-        th {
-            background-color: #f4f4f4;
-        }
-        .valid {
-            background-color: lightgreen;
-        }
-        .invalid {
-            background-color: lightcoral;
-        }
-        .generate-btn, .check-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px 0;
-            cursor: pointer;
-        }
-        .message {
+        .network {
+            color: green;
             font-weight: bold;
-            margin-top: 20px;
+        }
+        .host-bits {
+            color: red;
+            font-weight: bold;
+        }
+        .broadcast {
+            color: blue;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Generátor a kontrola IP adres</h1>
+    <h1>Rozdělení adresního rozsahu</h1>
+    <label for="range">Zadejte rozsah adres (např. 128.20.0.0/23):</label>
+    <input type="text" id="range" name="range" value="">
+    <br>
+    <label for="subnets">Zadejte počet hostů pro jednotlivé podsítě (oddělené čárkou, např. 200,120,60,4,2):</label>
+    <input type="text" id="subnets" name="subnets" value="">
+    <button onclick="generateRandomData()">Generovat náhodně</button>
+    <button onclick="splitRange()">Rozdělit</button>
+    <br><br>
+    <button onclick="validate()">Zkontrolovat</button>
 
-    <!-- Tlačítko pro generování počátečního rozsahu -->
-    <button class="generate-btn" onclick="generateInitialRange()">Generovat počáteční adresní rozsah</button>
-    <p id="initialRange">Počáteční adresní rozsah: </p>
 
-    <button class="generate-btn" onclick="generateSubnets()">Generovat subnety</button>
-    <button class="check-btn" onclick="checkAnswers()">Kontrola</button>
 
-    <!-- Tabulka pro zadávání údajů -->
-    <table id="subnetsTable">
+    <table id="resultTable">
         <thead>
             <tr>
                 <th>Subnet</th>
                 <th>Počet hostů</th>
-                <th>Prefix</th>
                 <th>Adresa sítě</th>
-                <th>Broadcast adresa</th>
+                <th>Broadcast</th>
+                <th>Prefix</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Zde se budou přidávat řádky pro každý vygenerovaný subnet -->
+            <!-- Výsledky budou zde -->
         </tbody>
     </table>
-
-    <!-- Zpráva pro uživatele -->
-    <div id="message" class="message"></div>
-
+<div id="errorMessage" class="error"></div>
     <script>
-        let subnets = [];
-        let networkRange = ''; // Počáteční rozsah bude generován
+        let calculatedAddresses = [];
 
-        // Funkce pro generování počátečního adresního rozsahu
-        function generateInitialRange() {
-            const firstOctet = Math.floor(Math.random() * 256);
-            const secondOctet = Math.floor(Math.random() * 256);
-            const thirdOctet = Math.floor(Math.random() * 256);
-            const fourthOctet = Math.floor(Math.random() * 256);
+        function generateRandomData() {
+            // Generování náhodného rozsahu
+            const randomIP = `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`;
+            const randomPrefix = Math.floor(Math.random() * 32) + 1;
+            document.getElementById('range').value = `${randomIP}/${randomPrefix}`;
 
-            // Generování náhodné délky prefixu mezi 16 a 24
-            const prefixLength = Math.floor(Math.random() * 9) + 16;
-
-            networkRange = `${firstOctet}.${secondOctet}.${thirdOctet}.${fourthOctet}/${prefixLength}`;
-            document.getElementById('initialRange').textContent = `Počáteční adresní rozsah: ${networkRange}`;
+            // Generování náhodného počtu hostů pro podsítě
+            const randomHosts = Array.from({ length: 5 }, () => Math.floor(Math.random() * 1000) + 1).join(',');
+            document.getElementById('subnets').value = randomHosts;
         }
 
-        // Funkce pro generování subnetů a hostů
-        function generateSubnets() {
-            if (!networkRange) {
-                alert('Nejdříve musíte generovat počáteční adresní rozsah!');
-                return;
-            }
+        function splitRange() {
+            const range = document.getElementById('range').value;
+            const [baseAddress, basePrefix] = range.split('/');
+            const subnetsInput = document.getElementById('subnets').value;
+            const subnets = subnetsInput.split(',').map(hosts => {
+                const prefix = 32 - Math.ceil(Math.log2(parseInt(hosts) + 2));
+                return { hosts: parseInt(hosts), prefix: prefix };
+            });
+            const resultTable = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
+            resultTable.innerHTML = '';
+            let currentAddress = baseAddress;
 
-            const numSubnets = Math.floor(Math.random() * 3) + 3;  // Minimálně 3 subnety
-            const hostsTable = document.getElementById('subnetsTable').getElementsByTagName('tbody')[0];
-            hostsTable.innerHTML = '';  // Vyprázdnění tabulky před generováním nových subnetů
-            subnets = [];
+            calculatedAddresses = [];  // Clear previous calculations
 
-            // Generování subnetů a počtu hostů
-            for (let i = 0; i < numSubnets; i++) {
-                const subnetLabel = String.fromCharCode(65 + i);  // A, B, C, D...
-                const numHosts = Math.floor(Math.random() * 1000) + 1;  // Generování náhodného počtu hostů
+            subnets.forEach((subnet, index) => {
+                const subnetLabel = `Subnet ${String.fromCharCode(65 + index)}`;
+                const broadcastAddress = calculateBroadcast(currentAddress, subnet.prefix);
 
-                // Přidání subnetu do pole
-                subnets.push({
+                // Add the calculated network and broadcast addresses to the array
+                calculatedAddresses.push({
                     label: subnetLabel,
-                    hosts: numHosts
+                    networkAddress: currentAddress,
+                    broadcastAddress: broadcastAddress,
+                    prefix: subnet.prefix
                 });
 
-                // Přidání řádku do tabulky pro každý subnet
-                let row = hostsTable.insertRow();
-                row.insertCell(0).textContent = subnetLabel;
-                row.insertCell(1).textContent = numHosts;
-                row.insertCell(2).innerHTML = `<input type="number" id="prefix_${i}" placeholder="Např. 24" value="24">`;
-                row.insertCell(3).innerHTML = `<input type="text" id="network_${i}" placeholder="Např. 172.16.0.0/24">`;
-                row.insertCell(4).innerHTML = `<input type="text" id="broadcast_${i}" placeholder="Např. 172.16.0.255">`;
-            }
-        }
+                const row = resultTable.insertRow();
+                row.insertCell(0).innerText = subnetLabel;
+                row.insertCell(1).innerText = subnet.hosts;
+                row.insertCell(2).innerHTML = `<input type="text" placeholder="Počítej adresu sítě" />`;
+                row.insertCell(3).innerHTML = `<input type="text" placeholder="Počítej broadcast adresu" />`;
+                row.insertCell(4).innerText = `/${subnet.prefix}`;
 
-        // Funkce pro kontrolu odpovědí uživatele
-        function checkAnswers() {
-            let message = document.getElementById('message');
-            let allCorrect = true;
-            message.textContent = '';  // Resetování zprávy
-
-            // Projít každý subnet a zkontrolovat odpovědi
-            subnets.forEach((subnet, i) => {
-                const networkAddressInput = document.getElementById(`network_${i}`);
-                const broadcastAddressInput = document.getElementById(`broadcast_${i}`);
-                const prefixInput = document.getElementById(`prefix_${i}`);
-
-                const userPrefix = parseInt(prefixInput.value);
-
-                // Výpočet správného prefixu
-                const calculatedPrefix = calculatePrefix(subnet.hosts);
-                const network = `${networkRange.split('.')[0]}.${networkRange.split('.')[1]}.${networkRange.split('.')[2]}.${subnet.hosts * i}.0/${userPrefix}`;
-                const broadcast = `${networkRange.split('.')[0]}.${networkRange.split('.')[1]}.${networkRange.split('.')[2]}.${subnet.hosts * i + 255}`;
-
-                // Zkontrolovat, zda odpovědi odpovídají správným hodnotám
-                let isNetworkCorrect = networkAddressInput.value === network;
-                let isBroadcastCorrect = broadcastAddressInput.value === broadcast;
-                let isPrefixCorrect = userPrefix === calculatedPrefix;
-
-                // Zvýraznění odpovědí
-                if (isNetworkCorrect) {
-                    networkAddressInput.classList.add('valid');
-                    networkAddressInput.classList.remove('invalid');
-                } else {
-                    networkAddressInput.classList.add('invalid');
-                    networkAddressInput.classList.remove('valid');
-                    allCorrect = false;
-                }
-
-                if (isBroadcastCorrect) {
-                    broadcastAddressInput.classList.add('valid');
-                    broadcastAddressInput.classList.remove('invalid');
-                } else {
-                    broadcastAddressInput.classList.add('invalid');
-                    broadcastAddressInput.classList.remove('valid');
-                    allCorrect = false;
-                }
-
-                if (isPrefixCorrect) {
-                    prefixInput.classList.add('valid');
-                    prefixInput.classList.remove('invalid');
-                } else {
-                    prefixInput.classList.add('invalid');
-                    prefixInput.classList.remove('valid');
-                    allCorrect = false;
-                }
+                currentAddress = getNextAddress(currentAddress, subnet.prefix);
             });
-
-            // Zpráva pro uživatele
-            if (allCorrect) {
-                message.textContent = "Vše je správně!";
-            } else {
-                message.textContent = "Některé hodnoty jsou nesprávné. Opravy: ";
-            }
         }
 
-        // Funkce pro výpočet správného prefixu na základě počtu hostů
-        function calculatePrefix(numHosts) {
-            let prefix = 32 - Math.ceil(Math.log2(numHosts + 2));  // +2 pro síťovou a broadcast adresu
-            return prefix;
+        function calculateBroadcast(address, prefix) {
+            const [octet1, octet2, octet3, octet4] = address.split('.').map(Number);
+            const hostBits = 32 - prefix;
+            const broadcastAddress = (octet1 << 24) | (octet2 << 16) | (octet3 << 8) | octet4 | ((1 << hostBits) - 1);
+            return [
+                (broadcastAddress >> 24) & 255,
+                (broadcastAddress >> 16) & 255,
+                (broadcastAddress >> 8) & 255,
+                broadcastAddress & 255
+            ].join('.');
+        }
+
+        function getNextAddress(address, prefix) {
+            const [octet1, octet2, octet3, octet4] = address.split('.').map(Number);
+            const hostBits = 32 - prefix;
+            const nextAddress = ((octet1 << 24) | (octet2 << 16) | (octet3 << 8) | octet4) + (1 << hostBits);
+            return [
+                (nextAddress >> 24) & 255,
+                (nextAddress >> 16) & 255,
+                (nextAddress >> 8) & 255,
+                nextAddress & 255
+            ].join('.');
+        }
+
+        function validate() {
+            const rows = document.getElementById('resultTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            let errorMessage = '';
+            let valid = true;
+
+            for (let i = 0; i < rows.length; i++) {
+                const subnetLabel = rows[i].cells[0].innerText;
+                const userNetworkAddress = rows[i].cells[2].getElementsByTagName('input')[0].value;
+                const userBroadcastAddress = rows[i].cells[3].getElementsByTagName('input')[0].value;
+
+                const calculatedAddress = calculatedAddresses.find(addr => addr.label === subnetLabel);
+
+                // Porovnání uživatelských adres s vypočítanými
+                if (userNetworkAddress !== calculatedAddress.networkAddress) {
+                    valid = false;
+                    errorMessage += `Chyba v adrese sítě pro ${subnetLabel}. Očekávaná: ${calculatedAddress.networkAddress}, Zadaná: ${userNetworkAddress}<br>`;
+                }
+                if (userBroadcastAddress !== calculatedAddress.broadcastAddress) {
+                    valid = false;
+                    errorMessage += `Chyba v broadcast adrese pro ${subnetLabel}. Očekávaná: ${calculatedAddress.broadcastAddress}, Zadaná: ${userBroadcastAddress}<br>`;
+                }
+            }
+
+            // Pokud je valid = false, vypíše se chyba
+            if (!valid) {
+                document.getElementById('errorMessage').innerHTML = errorMessage;
+            } else {
+                document.getElementById('errorMessage').innerHTML = 'Vše je správně!';
+            }
         }
     </script>
 </body>
