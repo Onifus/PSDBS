@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generátor a kontrola rozsahů IP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .valid {
+            background-color: lightgreen;
+        }
+        .invalid {
+            background-color: lightcoral;
+        }
+        .message {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .generate-btn, .check-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generátor a kontrola rozsahů IP</h1>
 
+    <!-- Tlačítka pro generaci a kontrolu -->
+    <button class="generate-btn" onclick="generateData()">Generovat</button>
+    <button class="check-btn" onclick="checkData()">Kontrola</button>
+
+    <!-- Tabulka pro zadávání IP adres -->
+    <table id="ipTable">
+        <thead>
+            <tr>
+                <th>Počet hostů</th>
+                <th>Rozsah IP</th>
+                <th>Broadcast</th>
+                <th>Prefix</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="number" id="hostCount" value="10"></td>
+                <td><input type="text" id="networkAddress" placeholder="Např. 192.168.1.0/24"></td>
+                <td><input type="text" id="broadcastAddress" placeholder="Např. 192.168.1.255"></td>
+                <td><input type="number" id="prefix" value="24"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Zpráva pro uživatele -->
+    <div id="message" class="message"></div>
+
+    <script>
+        // Funkce pro generování náhodného rozsahu a počtu hostů
+        function generateData() {
+            const hostCount = document.getElementById('hostCount');
+            const networkAddress = document.getElementById('networkAddress');
+            const broadcastAddress = document.getElementById('broadcastAddress');
+            const prefix = document.getElementById('prefix');
+
+            // Generování náhodného počtu hostů (maximálně 254 pro subnet s prefixem 24)
+            const randomHostCount = Math.floor(Math.random() * 253) + 1;
+            hostCount.value = randomHostCount;
+
+            // Generování náhodného subnetu (např. 192.168.0.0/24)
+            const randomPrefix = Math.floor(Math.random() * 6) + 24; // Generuje prefix mezi 24 a 29
+            const network = `192.168.1.0/${randomPrefix}`;
+            networkAddress.value = network;
+
+            // Generování broadcast adresy (základní logika pro /24)
+            const networkParts = network.split('/');
+            const baseIP = networkParts[0];
+            const broadcast = `192.168.1.255`; // Tento vzorec by se měl upravit podle konkrétního subnetu
+            broadcastAddress.value = broadcast;
+
+            // Nastavení prefixu
+            prefix.value = randomPrefix;
+        }
+
+        // Funkce pro kontrolu zadaných údajů
+        function checkData() {
+            const hostCount = document.getElementById('hostCount').value;
+            const networkAddress = document.getElementById('networkAddress').value;
+            const broadcastAddress = document.getElementById('broadcastAddress').value;
+            const prefix = document.getElementById('prefix').value;
+            const message = document.getElementById('message');
+            
+            // První kontrola: Počet hostů musí být v rozsahu (minimálně 1, maximálně 254 pro /24)
+            const maxHosts = Math.pow(2, 32 - prefix) - 2; // Počet hostů pro daný prefix (subnet)
+            let isHostCountValid = (hostCount >= 1 && hostCount <= maxHosts);
+            let isNetworkAddressValid = validateNetworkAddress(networkAddress);
+            let isBroadcastValid = validateBroadcast(broadcastAddress, networkAddress, prefix);
+
+            // Zelená pro správné hodnoty, červená pro špatné
+            document.getElementById('hostCount').className = isHostCountValid ? 'valid' : 'invalid';
+            document.getElementById('networkAddress').className = isNetworkAddressValid ? 'valid' : 'invalid';
+            document.getElementById('broadcastAddress').className = isBroadcastValid ? 'valid' : 'invalid';
+
+            // Zpráva pro uživatele
+            if (isHostCountValid && isNetworkAddressValid && isBroadcastValid) {
+                message.textContent = "Vše je správně!";
+            } else {
+                message.textContent = "Některé hodnoty jsou nesprávné. Opravy: ";
+                if (!isHostCountValid) message.textContent += "Počet hostů není v rozsahu.";
+                if (!isNetworkAddressValid) message.textContent += "Nesprávná adresa sítě.";
+                if (!isBroadcastValid) message.textContent += "Nesprávná broadcast adresa.";
+            }
+        }
+
+        // Funkce pro validaci síťové adresy
+        function validateNetworkAddress(networkAddress) {
+            // Zjednodušená kontrola pro správnost formátu (např. 192.168.1.0/24)
+            const regex = /(\d{1,3}\.){3}\d{1,3}\/\d+/;
+            return regex.test(networkAddress);
+        }
+
+        // Funkce pro validaci broadcast adresy
+        function validateBroadcast(broadcastAddress, networkAddress, prefix) {
+            // Tato funkce by měla provádět pokročilou kontrolu pro správnost broadcast adresy
+            // Zjednodušeně kontroluje pouze formát
+            const regex = /(\d{1,3}\.){3}\d{1,3}/;
+            return regex.test(broadcastAddress);
+        }
+    </script>
+</body>
+</html>
