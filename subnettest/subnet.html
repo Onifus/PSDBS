@@ -43,25 +43,22 @@
 <body>
     <h1>Generátor a kontrola IP adres</h1>
 
-    <button class="generate-btn" onclick="generateHosts()">Generovat hosty</button>
+    <button class="generate-btn" onclick="generateSubnets()">Generovat subnety</button>
     <button class="check-btn" onclick="checkAnswers()">Kontrola</button>
 
-    <!-- Zadání počtu hostů a výběr rozsahu -->
-    <label for="numHosts">Počet hostů:</label>
-    <input type="number" id="numHosts" value="10" min="1" max="254" />
-
-    <table id="hostsTable">
+    <!-- Tabulka pro zadávání údajů -->
+    <table id="subnetsTable">
         <thead>
             <tr>
-                <th>Pořadí</th>
-                <th>Host (IP)</th>
+                <th>Subnet</th>
+                <th>Počet hostů</th>
                 <th>Prefix</th>
                 <th>Adresa sítě</th>
                 <th>Broadcast adresa</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Zde se budou přidávat řádky pro každý vygenerovaný host -->
+            <!-- Zde se budou přidávat řádky pro každý vygenerovaný subnet -->
         </tbody>
     </table>
 
@@ -69,28 +66,34 @@
     <div id="message" class="message"></div>
 
     <script>
-        let generatedHosts = [];
-        let networkPrefix = 24;  // Prefix pro vygenerované adresy, uživatel počítá
+        let subnets = [];
+        let networkRange = '172.16.0.0/16';  // Počáteční rozsah
 
-        // Funkce pro generování hostů
-        function generateHosts() {
-            const numHosts = document.getElementById('numHosts').value;
-            const hostsTable = document.getElementById('hostsTable').getElementsByTagName('tbody')[0];
-            hostsTable.innerHTML = '';  // Vyprázdnění tabulky před generováním nových hostů
-            generatedHosts = [];
+        // Funkce pro generování subnetů a hostů
+        function generateSubnets() {
+            const numSubnets = Math.floor(Math.random() * 3) + 3;  // Minimálně 3 subnety
+            const hostsTable = document.getElementById('subnetsTable').getElementsByTagName('tbody')[0];
+            hostsTable.innerHTML = '';  // Vyprázdnění tabulky před generováním nových subnetů
+            subnets = [];
 
-            // Generování hostů v rozsahu 1 - max počet hostů
-            for (let i = 0; i < numHosts; i++) {
-                let baseIP = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
-                generatedHosts.push(baseIP);
+            // Generování subnetů a počtu hostů
+            for (let i = 0; i < numSubnets; i++) {
+                const subnetLabel = String.fromCharCode(65 + i);  // A, B, C, D...
+                const numHosts = Math.floor(Math.random() * 1000) + 1;  // Generování náhodného počtu hostů
 
-                // Přidání řádku do tabulky pro každý host
+                // Přidání subnetu do pole
+                subnets.push({
+                    label: subnetLabel,
+                    hosts: numHosts
+                });
+
+                // Přidání řádku do tabulky pro každý subnet
                 let row = hostsTable.insertRow();
-                row.insertCell(0).textContent = i + 1;
-                row.insertCell(1).textContent = baseIP;
-                row.insertCell(2).innerHTML = `<input type="number" id="prefix_${i}" value="24" placeholder="Např. 24">`;
-                row.insertCell(3).innerHTML = `<input type="text" id="network_${i}" placeholder="Např. 192.168.1.0/24">`;
-                row.insertCell(4).innerHTML = `<input type="text" id="broadcast_${i}" placeholder="Např. 192.168.1.255">`;
+                row.insertCell(0).textContent = subnetLabel;
+                row.insertCell(1).textContent = numHosts;
+                row.insertCell(2).innerHTML = `<input type="number" id="prefix_${i}" placeholder="Např. 24" value="24">`;
+                row.insertCell(3).innerHTML = `<input type="text" id="network_${i}" placeholder="Např. 172.16.0.0/24">`;
+                row.insertCell(4).innerHTML = `<input type="text" id="broadcast_${i}" placeholder="Např. 172.16.0.255">`;
             }
         }
 
@@ -100,22 +103,23 @@
             let allCorrect = true;
             message.textContent = '';  // Resetování zprávy
 
-            // Projít každý host a zkontrolovat odpovědi
-            generatedHosts.forEach((host, i) => {
+            // Projít každý subnet a zkontrolovat odpovědi
+            subnets.forEach((subnet, i) => {
                 const networkAddressInput = document.getElementById(`network_${i}`);
                 const broadcastAddressInput = document.getElementById(`broadcast_${i}`);
                 const prefixInput = document.getElementById(`prefix_${i}`);
-                
+
                 const userPrefix = parseInt(prefixInput.value);
 
-                // Výpočet správné sítě a broadcastu pro daný host
-                const network = `${host.split('.')[0]}.${host.split('.')[1]}.${host.split('.')[2]}.0/${userPrefix}`;
-                const broadcast = `${host.split('.')[0]}.${host.split('.')[1]}.${host.split('.')[2]}.255`;
+                // Výpočet správného prefixu
+                const calculatedPrefix = calculatePrefix(subnet.hosts);
+                const network = `${networkRange.split('.')[0]}.${networkRange.split('.')[1]}.${networkRange.split('.')[2]}.${subnet.hosts * i}.0/${userPrefix}`;
+                const broadcast = `${networkRange.split('.')[0]}.${networkRange.split('.')[1]}.${networkRange.split('.')[2]}.${subnet.hosts * i + 255}`;
 
                 // Zkontrolovat, zda odpovědi odpovídají správným hodnotám
                 let isNetworkCorrect = networkAddressInput.value === network;
                 let isBroadcastCorrect = broadcastAddressInput.value === broadcast;
-                let isPrefixCorrect = userPrefix === networkPrefix;
+                let isPrefixCorrect = userPrefix === calculatedPrefix;
 
                 // Zvýraznění odpovědí
                 if (isNetworkCorrect) {
@@ -152,6 +156,12 @@
             } else {
                 message.textContent = "Některé hodnoty jsou nesprávné. Opravy: ";
             }
+        }
+
+        // Funkce pro výpočet správného prefixu na základě počtu hostů
+        function calculatePrefix(numHosts) {
+            let prefix = 32 - Math.ceil(Math.log2(numHosts + 2));  // +2 pro síťovou a broadcast adresu
+            return prefix;
         }
     </script>
 </body>
