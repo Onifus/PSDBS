@@ -3,16 +3,23 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     background-color: #f4f6f8;
+    margin: 0;
+}
+
+/* Hero sekce s pozadím */
+.hero {
+    background-image: url('background.webp');
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    color: #ffffff;
+    padding: 100px 20px;
+    text-align: center;
 }
 
 .logo {
     font-size: 1.75em;
     font-weight: bold;
-}
-
-.hero {
-    background-blend-mode: overlay;
-    color: #ffffff;
 }
 
 .card {
