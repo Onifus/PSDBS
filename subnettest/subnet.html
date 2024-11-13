@@ -46,14 +46,18 @@
     <button class="generate-btn" onclick="generateHosts()">Generovat hosty</button>
     <button class="check-btn" onclick="checkAnswers()">Kontrola</button>
 
-    <!-- Tabulka pro zadávání údajů -->
+    <!-- Zadání počtu hostů a výběr rozsahu -->
+    <label for="numHosts">Počet hostů:</label>
+    <input type="number" id="numHosts" value="10" min="1" max="254" />
+
     <table id="hostsTable">
         <thead>
             <tr>
-                <th>Host</th>
+                <th>Pořadí</th>
+                <th>Host (IP)</th>
+                <th>Prefix</th>
                 <th>Adresa sítě</th>
                 <th>Broadcast adresa</th>
-                <th>Prefix</th>
             </tr>
         </thead>
         <tbody>
@@ -66,25 +70,27 @@
 
     <script>
         let generatedHosts = [];
-        let networkPrefix = 24;  // Prefix pro vygenerované adresy
+        let networkPrefix = 24;  // Prefix pro vygenerované adresy, uživatel počítá
 
-        // Funkce pro generování náhodných hostů
+        // Funkce pro generování hostů
         function generateHosts() {
+            const numHosts = document.getElementById('numHosts').value;
             const hostsTable = document.getElementById('hostsTable').getElementsByTagName('tbody')[0];
             hostsTable.innerHTML = '';  // Vyprázdnění tabulky před generováním nových hostů
             generatedHosts = [];
 
-            // Generování 5 náhodných hostů
-            for (let i = 0; i < 5; i++) {
+            // Generování hostů v rozsahu 1 - max počet hostů
+            for (let i = 0; i < numHosts; i++) {
                 let baseIP = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
                 generatedHosts.push(baseIP);
 
                 // Přidání řádku do tabulky pro každý host
                 let row = hostsTable.insertRow();
-                row.insertCell(0).textContent = baseIP;
-                row.insertCell(1).innerHTML = `<input type="text" id="network_${i}" placeholder="Např. 192.168.1.0/24">`;
-                row.insertCell(2).innerHTML = `<input type="text" id="broadcast_${i}" placeholder="Např. 192.168.1.255">`;
-                row.insertCell(3).innerHTML = `<input type="number" id="prefix_${i}" value="${networkPrefix}">`;
+                row.insertCell(0).textContent = i + 1;
+                row.insertCell(1).textContent = baseIP;
+                row.insertCell(2).innerHTML = `<input type="number" id="prefix_${i}" value="24" placeholder="Např. 24">`;
+                row.insertCell(3).innerHTML = `<input type="text" id="network_${i}" placeholder="Např. 192.168.1.0/24">`;
+                row.insertCell(4).innerHTML = `<input type="text" id="broadcast_${i}" placeholder="Např. 192.168.1.255">`;
             }
         }
 
@@ -100,15 +106,16 @@
                 const broadcastAddressInput = document.getElementById(`broadcast_${i}`);
                 const prefixInput = document.getElementById(`prefix_${i}`);
                 
+                const userPrefix = parseInt(prefixInput.value);
+
                 // Výpočet správné sítě a broadcastu pro daný host
-                const network = `${host.split('.')[0]}.${host.split('.')[1]}.${host.split('.')[2]}.0/${prefixInput.value}`;
+                const network = `${host.split('.')[0]}.${host.split('.')[1]}.${host.split('.')[2]}.0/${userPrefix}`;
                 const broadcast = `${host.split('.')[0]}.${host.split('.')[1]}.${host.split('.')[2]}.255`;
-                const correctPrefix = networkPrefix;
 
                 // Zkontrolovat, zda odpovědi odpovídají správným hodnotám
                 let isNetworkCorrect = networkAddressInput.value === network;
                 let isBroadcastCorrect = broadcastAddressInput.value === broadcast;
-                let isPrefixCorrect = parseInt(prefixInput.value) === correctPrefix;
+                let isPrefixCorrect = userPrefix === networkPrefix;
 
                 // Zvýraznění odpovědí
                 if (isNetworkCorrect) {
