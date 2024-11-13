@@ -11,8 +11,15 @@
     <!-- Záhlaví -->
     <header class="header bg-dark text-white py-3">
         <div class="container d-flex justify-content-between align-items-center">
-            <h1 class="logo">NetLearn</h1>
-            <nav>
+            <div class="d-flex align-items-center">
+                <!-- Logo -->
+                <div class="logo-icon bg-light text-dark rounded-circle d-flex align-items-center justify-content-center">
+                    <span class="logo-text">N</span>
+                </div>
+                <h1 class="logo ms-2">NetLearn</h1>
+            </div>
+            <!-- Navigace -->
+            <nav class="d-flex">
                 <a href="#home" class="nav-link">Domů</a>
                 <a href="#courses" class="nav-link">Lekce</a>
                 <a href="#tools" class="nav-link">Nástroje</a>
@@ -36,28 +43,36 @@
             <h2 class="mb-5 section-title">Co se naučíte</h2>
             <div class="row">
                 <div class="col-md-3">
-                    <div class="card futuristic-card">
-                        <h3 class="card-title">Základy sítí</h3>
-                        <p>Naučte se základy IP adres, masky podsítě a základní topologie sítí.</p>
-                    </div>
+                    <a href="#net-basics" class="category-link">
+                        <div class="futuristic-card">
+                            <h3 class="card-title">Základy sítí</h3>
+                            <p>Naučte se základy IP adres, masky podsítě a základní topologie sítí.</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card futuristic-card">
-                        <h3 class="card-title">Subnetting</h3>
-                        <p>Osvojte si výpočty pro subnety, CIDR a masky.</p>
-                    </div>
+                    <a href="#subnetting" class="category-link">
+                        <div class="futuristic-card">
+                            <h3 class="card-title">Subnetting</h3>
+                            <p>Osvojte si výpočty pro subnety, CIDR a masky.</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card futuristic-card">
-                        <h3 class="card-title">Pokročilé protokoly</h3>
-                        <p>Poznajte pokročilé síťové protokoly jako DHCP, DNS a BGP.</p>
-                    </div>
+                    <a href="#advanced-protocols" class="category-link">
+                        <div class="futuristic-card">
+                            <h3 class="card-title">Pokročilé protokoly</h3>
+                            <p>Poznajte pokročilé síťové protokoly jako DHCP, DNS a BGP.</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card futuristic-card">
-                        <h3 class="card-title">Nástroje</h3>
-                        <p>Využijte kalkulačky pro subnetting, ping testery a IP skenery.</p>
-                    </div>
+                    <a href="#tools" class="category-link">
+                        <div class="futuristic-card">
+                            <h3 class="card-title">Nástroje</h3>
+                            <p>Využijte kalkulačky pro subnetting, ping testery a IP skenery.</p>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
