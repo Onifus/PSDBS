@@ -1,171 +1,37 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rozdělení adresního rozsahu</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        .network {
-            color: green;
-            font-weight: bold;
-        }
-        .host-bits {
-            color: red;
-            font-weight: bold;
-        }
-        .broadcast {
-            color: blue;
-            font-weight: bold;
-        }
-        .error {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subnet Calculator</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Rozdělení adresního rozsahu</h1>
-    <label for="range">Zadejte rozsah adres (např. 128.20.0.0/23):</label>
-    <input type="text" id="range" name="range" value="">
-    <br>
-    <label for="subnets">Zadejte počet hostů pro jednotlivé podsítě (oddělené čárkou, např. 200,120,60,4,2):</label>
-    <input type="text" id="subnets" name="subnets" value="">
-    <button onclick="generateRandomData()">Generovat náhodně</button>
-    <button onclick="splitRange()">Rozdělit</button>
-    <br><br>
-    <button onclick="validate()">Zkontrolovat</button>
+  <header class="neon-header">
+    <h1>Subnet Calculator</h1>
+    <p>Enter network details below and calculate ranges instantly.</p>
+  </header>
 
-    <div id="errorMessage" class="error"></div>
+  <main class="neon-main">
+    <section class="form-section">
+      <h2>Input Network Range</h2>
+      <form id="subnetForm">
+        <label for="input_network">Network Address:</label>
+        <input type="text" id="input_network" placeholder="e.g., 192.168.0.0/24">
+        
+        <label for="input_num_of_subnets">Number of Subnets:</label>
+        <input type="number" id="input_num_of_subnets" placeholder="e.g., 4">
+        
+        <button type="button" onclick="calculateSubnets()">Calculate</button>
+      </form>
+    </section>
 
-    <table id="resultTable">
-        <thead>
-            <tr>
-                <th>Subnet</th>
-                <th>Počet hostů</th>
-                <th>Adresa sítě</th>
-                <th>Broadcast</th>
-                <th>Prefix</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Výsledky budou zde -->
-        </tbody>
-    </table>
+    <section class="result-section">
+      <h2>Calculated Ranges</h2>
+      <div id="results"></div>
+    </section>
+  </main>
 
-    <script>
-        let calculatedAddresses = [];
-
-        function generateRandomData() {
-            // Generování náhodného rozsahu
-            const randomIP = `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`;
-            const randomPrefix = Math.floor(Math.random() * 32) + 1;
-            document.getElementById('range').value = `${randomIP}/${randomPrefix}`;
-
-            // Generování náhodného počtu hostů pro podsítě
-            const randomHosts = Array.from({ length: 5 }, () => Math.floor(Math.random() * 1000) + 1).join(',');
-            document.getElementById('subnets').value = randomHosts;
-        }
-
-        function splitRange() {
-            const range = document.getElementById('range').value;
-            const [baseAddress, basePrefix] = range.split('/');
-            const subnetsInput = document.getElementById('subnets').value;
-            const subnets = subnetsInput.split(',').map(hosts => {
-                const prefix = 32 - Math.ceil(Math.log2(parseInt(hosts) + 2));
-                return { hosts: parseInt(hosts), prefix: prefix };
-            });
-            const resultTable = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
-            resultTable.innerHTML = '';
-            let currentAddress = baseAddress;
-
-            calculatedAddresses = [];  // Clear previous calculations
-
-            subnets.forEach((subnet, index) => {
-                const subnetLabel = `Subnet ${String.fromCharCode(65 + index)}`;
-                const broadcastAddress = calculateBroadcast(currentAddress, subnet.prefix);
-
-                // Add the calculated network and broadcast addresses to the array
-                calculatedAddresses.push({
-                    label: subnetLabel,
-                    networkAddress: currentAddress,
-                    broadcastAddress: broadcastAddress,
-                    prefix: subnet.prefix
-                });
-
-                const row = resultTable.insertRow();
-                row.insertCell(0).innerText = subnetLabel;
-                row.insertCell(1).innerText = subnet.hosts;
-                row.insertCell(2).innerHTML = `<input type="text" placeholder="Počítej adresu sítě" />`;
-                row.insertCell(3).innerHTML = `<input type="text" placeholder="Počítej broadcast adresu" />`;
-                row.insertCell(4).innerText = `/${subnet.prefix}`;
-
-                currentAddress = getNextAddress(currentAddress, subnet.prefix);
-            });
-        }
-
-        function calculateBroadcast(address, prefix) {
-            const [octet1, octet2, octet3, octet4] = address.split('.').map(Number);
-            const hostBits = 32 - prefix;
-            const broadcastAddress = (octet1 << 24) | (octet2 << 16) | (octet3 << 8) | octet4 | ((1 << hostBits) - 1);
-            return [
-                (broadcastAddress >> 24) & 255,
-                (broadcastAddress >> 16) & 255,
-                (broadcastAddress >> 8) & 255,
-                broadcastAddress & 255
-            ].join('.');
-        }
-
-        function getNextAddress(address, prefix) {
-            const [octet1, octet2, octet3, octet4] = address.split('.').map(Number);
-            const hostBits = 32 - prefix;
-            const nextAddress = ((octet1 << 24) | (octet2 << 16) | (octet3 << 8) | octet4) + (1 << hostBits);
-            return [
-                (nextAddress >> 24) & 255,
-                (nextAddress >> 16) & 255,
-                (nextAddress >> 8) & 255,
-                nextAddress & 255
-            ].join('.');
-        }
-
-        function validate() {
-            const rows = document.getElementById('resultTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-            let errorMessage = '';
-            let valid = true;
-
-            for (let i = 0; i < rows.length; i++) {
-                const subnetLabel = rows[i].cells[0].innerText;
-                const userNetworkAddress = rows[i].cells[2].getElementsByTagName('input')[0].value;
-                const userBroadcastAddress = rows[i].cells[3].getElementsByTagName('input')[0].value;
-
-                const calculatedAddress = calculatedAddresses.find(addr => addr.label === subnetLabel);
-
-                // Porovnání uživatelských adres s vypočítanými
-                if (userNetworkAddress !== calculatedAddress.networkAddress) {
-                    valid = false;
-                    errorMessage += `Chyba v adrese sítě pro ${subnetLabel}. Očekávaná: ${calculatedAddress.networkAddress}, Zadaná: ${userNetworkAddress}<br>`;
-                }
-                if (userBroadcastAddress !== calculatedAddress.broadcastAddress) {
-                    valid = false;
-                    errorMessage += `Chyba v broadcast adrese pro ${subnetLabel}. Očekávaná: ${calculatedAddress.broadcastAddress}, Zadaná: ${userBroadcastAddress}<br>`;
-                }
-            }
-
-            // Pokud je valid = false, vypíše se chyba
-            if (!valid) {
-                document.getElementById('errorMessage').innerHTML = errorMessage;
-            } else {
-                document.getElementById('errorMessage').innerHTML = 'Vše je správně!';
-            }
-        }
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>
