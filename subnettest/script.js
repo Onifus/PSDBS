@@ -1,78 +1,101 @@
-function clearForm() {
-    document.getElementById("input_network").value = "";
-    document.getElementById("input_num_of_subnets").value = "";
-    document.getElementById("subnet_input").innerHTML = "";
-    document.getElementById("results").innerHTML = "";
-}
+document.addEventListener('DOMContentLoaded', generateSubnets);
+document.getElementById('checkBtn').addEventListener('click', checkAnswers);
 
-function changeSubnetNumber() {
-    const subnetCount = parseInt(document.getElementById("input_num_of_subnets").value);
-    if (isNaN(subnetCount) || subnetCount < 1) {
-        alert("Zadejte prosím platný počet subnetů.");
-        return;
-    }
+function generateSubnets() {
+    const output = document.getElementById('questions');
+    output.innerHTML = ''; 
 
-    let inputFields = "<h3>Zadejte počet hostů pro každý subnet:</h3>";
-    for (let i = 1; i <= subnetCount; i++) {
-        inputFields += `<label for="hosts${i}">Subnet ${i} - Počet hostů:</label>`;
-        inputFields += `<input type="number" id="hosts${i}" placeholder="Např. 50"><br><br>`;
-    }
-    document.getElementById("subnet_input").innerHTML = inputFields;
-}
+    const startingIP = generateRandomIP();
+    const startingPrefix = Math.floor(Math.random() * (30 - 24 + 1)) + 24;
+    document.getElementById('startingIP').innerText = `${startingIP}/${startingPrefix}`;
 
-function validateIP(ip) {
-    const pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([1-9]|[1-2][0-9]|3[0-2])$/;
-    return pattern.test(ip);
-}
+    const numHosts = Array.from({ length: Math.floor(Math.random() * 4) + 2 }, () => Math.floor(Math.random() * 250) + 5);
+    numHosts.sort((a, b) => b - a); 
 
-function calculateSubnets() {
-    const network = document.getElementById("input_network").value.trim();
-    if (!validateIP(network)) {
-        document.getElementById("results").innerHTML = "<b>Neplatná IP adresa nebo maska sítě.</b>";
-        return;
-    }
+    let currentIP = ipToNumber(startingIP);
 
-    const [baseIP, mask] = network.split("/");
-    const numHostsPerSubnet = [];
-    const subnetCount = parseInt(document.getElementById("input_num_of_subnets").value);
-
-    for (let i = 1; i <= subnetCount; i++) {
-        const hosts = parseInt(document.getElementById(`hosts${i}`).value);
-        if (isNaN(hosts) || hosts < 1) {
-            alert(`Zadejte platný počet hostů pro subnet ${i}`);
-            return;
-        }
-        numHostsPerSubnet.push(hosts);
-    }
-
-    numHostsPerSubnet.sort((a, b) => b - a);
-
-    let resultsTable = "<table><tr><th>Subnet</th><th>Počet hostů</th><th>IP Rozsah</th><th>Broadcast</th><th>Maska</th></tr>";
-    let currentIP = baseIP.split('.').map(Number);
-
-    numHostsPerSubnet.forEach((hostsNeeded, index) => {
-        const subnetMask = 32 - Math.ceil(Math.log2(hostsNeeded + 2));
-        const hostsAvailable = Math.pow(2, 32 - subnetMask) - 2;
-
-        const maskArray = [0, 0, 0, 0];
-        for (let i = 0; i < 4; i++) {
-            if (subnetMask > i * 8) {
-                maskArray[i] = 256 - Math.pow(2, 8 - Math.min(8, subnetMask - i * 8));
-            }
-        }
-
-        const networkAddress = currentIP.join(".");
-        const broadcastAddress = currentIP.slice();
-        broadcastAddress[3] += hostsAvailable + 1;
-        
-        resultsTable += `<tr><td>Subnet ${index + 1}</td><td>${hostsNeeded}</td><td>${networkAddress}</td><td>${broadcastAddress.join(".")}</td><td>${maskArray.join(".")}</td></tr>`;
-        
-        currentIP[3] += hostsAvailable + 1;
-        if (currentIP[3] > 255) { currentIP[2] += Math.floor(currentIP[3] / 256); currentIP[3] %= 256; }
-        if (currentIP[2] > 255) { currentIP[1] += Math.floor(currentIP[2] / 256); currentIP[2] %= 256; }
-        if (currentIP[1] > 255) { currentIP[0] += Math.floor(currentIP[1] / 256); currentIP[1] %= 256; }
+    let htmlContent = '';
+    numHosts.forEach((hosts, index) => {
+        const requiredPrefix = 32 - Math.ceil(Math.log2(hosts + 2));
+        htmlContent += `
+            <div class="subnet">
+                <h3>Subnet ${index + 1} - Hosts: ${hosts}</h3>
+                <label>IP Address: <input type="text" class="user-ip" placeholder="Enter IP"></label>
+                <label>Prefix: <input type="text" class="user-prefix" placeholder="Enter Prefix"></label>
+                <label>Network Address: <input type="text" class="user-network" placeholder="Enter Network Address"></label>
+                <label>Broadcast Address: <input type="text" class="user-broadcast" placeholder="Enter Broadcast Address"></label>
+                <div class="feedback"></div>
+            </div>
+        `;
+        currentIP += Math.pow(2, 32 - requiredPrefix);
     });
+    output.innerHTML = htmlContent;
 
-    resultsTable += "</table>";
-    document.getElementById("results").innerHTML = resultsTable;
+    output.dataset.startingIp = startingIP;
+    output.dataset.startingPrefix = startingPrefix;
+    output.dataset.numHosts = JSON.stringify(numHosts);
+}
+
+function checkAnswers() {
+    const startingIP = document.getElementById('questions').dataset.startingIp;
+    let currentIP = ipToNumber(startingIP);
+
+    document.querySelectorAll('.subnet').forEach((subnetDiv, index) => {
+        const hosts = JSON.parse(document.getElementById('questions').dataset.numHosts)[index];
+        const requiredPrefix = 32 - Math.ceil(Math.log2(hosts + 2));
+        const requiredNetwork = calculateNetworkAddress(numberToIP(currentIP), requiredPrefix);
+        const requiredBroadcast = calculateBroadcastAddress(numberToIP(currentIP), requiredPrefix);
+
+        const userIP = subnetDiv.querySelector('.user-ip');
+        const userPrefix = subnetDiv.querySelector('.user-prefix');
+        const userNetwork = subnetDiv.querySelector('.user-network');
+        const userBroadcast = subnetDiv.querySelector('.user-broadcast');
+        const feedback = subnetDiv.querySelector('.feedback');
+
+        const isIPCorrect = userIP.value.trim() === numberToIP(currentIP);
+        const isPrefixCorrect = parseInt(userPrefix.value.trim()) === requiredPrefix;
+        const isNetworkCorrect = userNetwork.value.trim() === requiredNetwork;
+        const isBroadcastCorrect = userBroadcast.value.trim() === requiredBroadcast;
+
+        feedback.innerHTML = ''; 
+        userIP.style.color = isIPCorrect ? 'white' : 'red';
+        userPrefix.style.color = isPrefixCorrect ? 'white' : 'red';
+        userNetwork.style.color = isNetworkCorrect ? 'white' : 'red';
+        userBroadcast.style.color = isBroadcastCorrect ? 'white' : 'red';
+
+        if (!isIPCorrect) feedback.innerHTML += `<p>IP Address: Chyba - správně: ${numberToIP(currentIP)}</p>`;
+        if (!isPrefixCorrect) feedback.innerHTML += `<p>Prefix: Chyba - správně: ${requiredPrefix}</p>`;
+        if (!isNetworkCorrect) feedback.innerHTML += `<p>Network Address: Chyba - správně: ${requiredNetwork}</p>`;
+        if (!isBroadcastCorrect) feedback.innerHTML += `<p>Broadcast Address: Chyba - správně: ${requiredBroadcast}</p>`;
+
+        currentIP += Math.pow(2, 32 - requiredPrefix);
+    });
+}
+
+function generateRandomIP() {
+    return `${randomOctet()}.${randomOctet()}.${randomOctet()}.0`;
+}
+
+function randomOctet() {
+    return Math.floor(Math.random() * 256);
+}
+
+function ipToNumber(ip) {
+    return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0);
+}
+
+function numberToIP(num) {
+    return [(num >>> 24) & 255, (num >>> 16) & 255, (num >>> 8) & 255, num & 255].join('.');
+}
+
+function calculateNetworkAddress(ip, prefix) {
+    const ipNum = ipToNumber(ip);
+    const mask = ~((1 << (32 - prefix)) - 1);
+    return numberToIP(ipNum & mask);
+}
+
+function calculateBroadcastAddress(ip, prefix) {
+    const ipNum = ipToNumber(ip);
+    const mask = ~((1 << (32 - prefix)) - 1);
+    return numberToIP(ipNum | ~mask);
 }
