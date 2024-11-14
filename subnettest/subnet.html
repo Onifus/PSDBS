@@ -3,140 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Výpočet IP subnetů</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #1a1a1a; color: #fff; }
-        .container { max-width: 600px; width: 100%; padding: 20px; background-color: #333; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
-        h2 { text-align: center; color: #00ffcc; }
-        label, button { display: block; margin-top: 10px; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 8px; margin-top: 5px; border: none; border-radius: 4px; }
-        button { padding: 10px; border: none; background-color: #00ffcc; color: #333; border-radius: 4px; cursor: pointer; margin-top: 15px; }
-        button:hover { background-color: #00cc99; }
-        #results { margin-top: 20px; overflow-y: auto; max-height: 300px; }
-        table { width: 100%; border-collapse: collapse; color: #fff; }
-        table, th, td { border: 1px solid #555; padding: 8px; text-align: center; }
-        th { background-color: #444; }
-        .hidden { display: none; }
-    </style>
+    <title>Generátor IP a Subnetů</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <div class="container">
-    <h2>Výpočet IP subnetů</h2>
+    <h2>Subnetting Practice</h2>
+    <p id="instructions">Starting IP: <span id="startingIP"></span></p>
+    
+    <div id="questions"></div>
 
-    <div id="initial_input">
-        <label for="input_network">Zadejte počáteční IP síť (např. 192.168.1.0/24):</label>
-        <input type="text" id="input_network" placeholder="192.168.1.0/24">
-        
-        <label for="input_num_of_subnets">Počet subnetů:</label>
-        <input type="number" id="input_num_of_subnets" placeholder="Např. 4">
-        
-        <button onclick="showHostInputs()">Vytvořit subnety</button>
-    </div>
-
-    <div id="host_input" class="hidden">
-        <h3>Zadejte počet hostů pro každý subnet:</h3>
-        <div id="subnet_input"></div>
-        <button onclick="calculateSubnets()">Vypočítat subnety</button>
-        <button onclick="resetForm()">Zpět na zadání IP a počtu subnetů</button>
-    </div>
-
-    <div id="results_section" class="hidden">
-        <div id="results"></div>
-        <button onclick="resetForm()">Reset</button>
-    </div>
+    <button id="checkBtn">Zkontrolovat odpovědi</button>
 </div>
 
-<script>
-function resetForm() {
-    document.getElementById("input_network").value = "";
-    document.getElementById("input_num_of_subnets").value = "";
-    document.getElementById("subnet_input").innerHTML = "";
-    document.getElementById("results").innerHTML = "";
 
-    document.getElementById("initial_input").classList.remove("hidden");
-    document.getElementById("host_input").classList.add("hidden");
-    document.getElementById("results_section").classList.add("hidden");
-}
-
-function showHostInputs() {
-    const subnetCount = parseInt(document.getElementById("input_num_of_subnets").value);
-    if (isNaN(subnetCount) || subnetCount < 1) {
-        alert("Zadejte prosím platný počet subnetů.");
-        return;
-    }
-
-    document.getElementById("initial_input").classList.add("hidden");
-    document.getElementById("host_input").classList.remove("hidden");
-
-    let inputFields = "";
-    for (let i = 1; i <= subnetCount; i++) {
-        inputFields += `<label for="hosts${i}">Subnet ${i} - Počet hostů:</label>`;
-        inputFields += `<input type="number" id="hosts${i}" placeholder="Např. 50"><br><br>`;
-    }
-    document.getElementById("subnet_input").innerHTML = inputFields;
-}
-
-function validateIP(ip) {
-    const pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([1-9]|[1-2][0-9]|3[0-2])$/;
-    return pattern.test(ip);
-}
-
-function calculateSubnets() {
-    const network = document.getElementById("input_network").value.trim();
-    if (!validateIP(network)) {
-        document.getElementById("results").innerHTML = "<b>Neplatná IP adresa nebo maska sítě.</b>";
-        return;
-    }
-
-    const [baseIP, mask] = network.split("/");
-    const numHostsPerSubnet = [];
-    const subnetCount = parseInt(document.getElementById("input_num_of_subnets").value);
-
-    for (let i = 1; i <= subnetCount; i++) {
-        const hosts = parseInt(document.getElementById(`hosts${i}`).value);
-        if (isNaN(hosts) || hosts < 1) {
-            alert(`Zadejte platný počet hostů pro subnet ${i}`);
-            return;
-        }
-        numHostsPerSubnet.push(hosts);
-    }
-
-    numHostsPerSubnet.sort((a, b) => b - a);
-
-    let resultsTable = "<table><tr><th>Subnet</th><th>Počet hostů</th><th>IP Rozsah</th><th>Broadcast</th><th>Maska</th></tr>";
-    let currentIP = baseIP.split('.').map(Number);
-
-    numHostsPerSubnet.forEach((hostsNeeded, index) => {
-        const subnetMask = 32 - Math.ceil(Math.log2(hostsNeeded + 2));
-        const hostsAvailable = Math.pow(2, 32 - subnetMask) - 2;
-
-        const maskArray = [0, 0, 0, 0];
-        for (let i = 0; i < 4; i++) {
-            if (subnetMask > i * 8) {
-                maskArray[i] = 256 - Math.pow(2, 8 - Math.min(8, subnetMask - i * 8));
-            }
-        }
-
-        const networkAddress = currentIP.join(".");
-        const broadcastAddress = currentIP.slice();
-        broadcastAddress[3] += hostsAvailable + 1;
-
-        resultsTable += `<tr><td>Subnet ${index + 1}</td><td>${hostsNeeded}</td><td>${networkAddress}</td><td>${broadcastAddress.join(".")}</td><td>${maskArray.join(".")}</td></tr>`;
-        
-        currentIP[3] += hostsAvailable + 1;
-        if (currentIP[3] > 255) { currentIP[2] += Math.floor(currentIP[3] / 256); currentIP[3] %= 256; }
-        if (currentIP[2] > 255) { currentIP[1] += Math.floor(currentIP[2] / 256); currentIP[2] %= 256; }
-        if (currentIP[1] > 255) { currentIP[0] += Math.floor(currentIP[1] / 256); currentIP[1] %= 256; }
-    });
-
-    resultsTable += "</table>";
-    document.getElementById("results").innerHTML = resultsTable;
-
-    document.getElementById("host_input").classList.add("hidden");
-    document.getElementById("results_section").classList.remove("hidden");
-}
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
