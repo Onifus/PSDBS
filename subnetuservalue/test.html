@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generátor IP a Subnetů</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+	<div class="container">
+    <h2>Futuristic Subnet Calculator</h2>
+    
+    <label for="startingIP">Starting IP:</label>
+    <input type="text" id="startingIP" placeholder="např. 192.168.1.0">
+
+    <label for="hostCounts">Počet hostů (odděleno čárkami):</label>
+    <input type="text" id="hostCounts" placeholder="např. 180,70,20,30">
+
+    <button id="generateBtn">Vygenerovat</button>
+
+    <div id="output"></div>
+	</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
