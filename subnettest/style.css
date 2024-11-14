@@ -1,74 +1,93 @@
-/* Global Styles */
+* {
+    box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #141414;
-  color: #E0E0E0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0d1a2d, #090f18);
+    color: #e0e8f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
 }
 
-.neon-header {
-  text-align: center;
-  color: #0ff;
-  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #00f;
-  padding: 1rem;
-}
-
-.neon-main {
-  width: 90%;
-  max-width: 600px;
-  margin: 2rem 0;
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  padding: 2rem;
-  box-shadow: 0 0 20px #00ffdd, 0 0 30px #00ffdd;
-}
-
-.form-section, .result-section {
-  margin-bottom: 1.5rem;
+.container {
+    background: #131a29;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.6);
+    width: 100%;
+    max-width: 650px;
+    text-align: center;
 }
 
 h2 {
-  color: #0ff;
-  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+    color: #00aaff;
+    text-shadow: 0 0 5px #00aaff, 0 0 10px #00aaff;
+    font-size: 1.7em;
+    margin: 0;
+    margin-bottom: 10px;
 }
 
-/* Input and Button Styles */
-input[type="text"], input[type="number"] {
-  width: 100%;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  border: none;
-  background: #333;
-  color: #0ff;
-  outline: none;
-  border-radius: 5px;
-  box-shadow: inset 0 0 5px #00f, 0 0 5px #00f;
+p#instructions {
+    font-size: 1em;
+    color: #b0c7d4;
+}
+
+.subnet {
+    background: rgba(20, 40, 60, 0.9);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+    box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+}
+
+label {
+    display: block;
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: #b0c7d4;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    background-color: #1e2b3a;
+    color: #ffffff;
+    border: 1px solid #344d67;
+    border-radius: 4px;
+    outline: none;
+    transition: 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: #00aaff;
+    box-shadow: 0 0 8px #00aaff;
 }
 
 button {
-  width: 100%;
-  padding: 0.7rem;
-  background-color: #0ff;
-  border: none;
-  color: #141414;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 5px;
-  box-shadow: 0 0 5px #0ff, 0 0 10px #00f;
-  transition: transform 0.2s;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #00aaff;
+    color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 1em;
+    box-shadow: 0 0 10px #00aaff, 0 0 20px #00aaff;
 }
 
 button:hover {
-  transform: scale(1.05);
+    background-color: #0094cc;
 }
 
-/* Results Section */
-.result-section {
-  background-color: #222;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: inset 0 0 10px #00f;
+.feedback {
+    color: red;
+    font-size: 0.85em;
+    text-align: left;
+    margin-top: 5px;
 }
