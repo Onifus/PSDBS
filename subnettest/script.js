@@ -1,76 +1,78 @@
+function clearForm() {
+    document.getElementById("input_network").value = "";
+    document.getElementById("input_num_of_subnets").value = "";
+    document.getElementById("subnet_input").innerHTML = "";
+    document.getElementById("results").innerHTML = "";
+}
+
+function changeSubnetNumber() {
+    const subnetCount = parseInt(document.getElementById("input_num_of_subnets").value);
+    if (isNaN(subnetCount) || subnetCount < 1) {
+        alert("Zadejte prosím platný počet subnetů.");
+        return;
+    }
+
+    let inputFields = "<h3>Zadejte počet hostů pro každý subnet:</h3>";
+    for (let i = 1; i <= subnetCount; i++) {
+        inputFields += `<label for="hosts${i}">Subnet ${i} - Počet hostů:</label>`;
+        inputFields += `<input type="number" id="hosts${i}" placeholder="Např. 50"><br><br>`;
+    }
+    document.getElementById("subnet_input").innerHTML = inputFields;
+}
+
+function validateIP(ip) {
+    const pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([1-9]|[1-2][0-9]|3[0-2])$/;
+    return pattern.test(ip);
+}
+
 function calculateSubnets() {
-  const networkInput = document.getElementById("input_network").value;
-  const numSubnets = parseInt(document.getElementById("input_num_of_subnets").value);
+    const network = document.getElementById("input_network").value.trim();
+    if (!validateIP(network)) {
+        document.getElementById("results").innerHTML = "<b>Neplatná IP adresa nebo maska sítě.</b>";
+        return;
+    }
 
-  // Validate network input (basic IPv4 format and CIDR check)
-  const networkRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([1-9]|[1-2][0-9]|3[0-2])$/;
-  if (!networkRegex.test(networkInput) || isNaN(numSubnets) || numSubnets < 1) {
-    alert("Please enter a valid network address (e.g., 192.168.0.0/24) and a positive integer for the number of subnets.");
-    return;
-  }
+    const [baseIP, mask] = network.split("/");
+    const numHostsPerSubnet = [];
+    const subnetCount = parseInt(document.getElementById("input_num_of_subnets").value);
 
-  // Split network address and CIDR notation
-  const [ipAddress, cidr] = networkInput.split("/");
-  const subnetMaskBits = parseInt(cidr);
+    for (let i = 1; i <= subnetCount; i++) {
+        const hosts = parseInt(document.getElementById(`hosts${i}`).value);
+        if (isNaN(hosts) || hosts < 1) {
+            alert(`Zadejte platný počet hostů pro subnet ${i}`);
+            return;
+        }
+        numHostsPerSubnet.push(hosts);
+    }
 
-  // Calculate the number of hosts in the network
-  const totalHosts = Math.pow(2, 32 - subnetMaskBits) - 2;
-  if (totalHosts < numSubnets) {
-    alert("The network does not have enough hosts for the requested number of subnets.");
-    return;
-  }
+    numHostsPerSubnet.sort((a, b) => b - a);
 
-  // Convert IP to binary
-  const ipSegments = ipAddress.split(".").map(seg => parseInt(seg, 10).toString(2).padStart(8, "0"));
-  const binaryIP = ipSegments.join("");
+    let resultsTable = "<table><tr><th>Subnet</th><th>Počet hostů</th><th>IP Rozsah</th><th>Broadcast</th><th>Maska</th></tr>";
+    let currentIP = baseIP.split('.').map(Number);
 
-  // Calculate the subnet mask based on CIDR
-  const subnetMaskBinary = "1".repeat(subnetMaskBits).padEnd(32, "0");
-  const subnetMaskSegments = [
-    parseInt(subnetMaskBinary.slice(0, 8), 2),
-    parseInt(subnetMaskBinary.slice(8, 16), 2),
-    parseInt(subnetMaskBinary.slice(16, 24), 2),
-    parseInt(subnetMaskBinary.slice(24, 32), 2)
-  ];
+    numHostsPerSubnet.forEach((hostsNeeded, index) => {
+        const subnetMask = 32 - Math.ceil(Math.log2(hostsNeeded + 2));
+        const hostsAvailable = Math.pow(2, 32 - subnetMask) - 2;
 
-  // Calculate each subnet range
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "<h3>Subnet Ranges</h3>";
-  let outputHTML = "<table><tr><th>Subnet #</th><th>Network Address</th><th>Usable Range</th><th>Broadcast</th></tr>";
+        const maskArray = [0, 0, 0, 0];
+        for (let i = 0; i < 4; i++) {
+            if (subnetMask > i * 8) {
+                maskArray[i] = 256 - Math.pow(2, 8 - Math.min(8, subnetMask - i * 8));
+            }
+        }
 
-  let currentSubnetBinary = binaryIP.slice(0, subnetMaskBits).padEnd(32, "0");
+        const networkAddress = currentIP.join(".");
+        const broadcastAddress = currentIP.slice();
+        broadcastAddress[3] += hostsAvailable + 1;
+        
+        resultsTable += `<tr><td>Subnet ${index + 1}</td><td>${hostsNeeded}</td><td>${networkAddress}</td><td>${broadcastAddress.join(".")}</td><td>${maskArray.join(".")}</td></tr>`;
+        
+        currentIP[3] += hostsAvailable + 1;
+        if (currentIP[3] > 255) { currentIP[2] += Math.floor(currentIP[3] / 256); currentIP[3] %= 256; }
+        if (currentIP[2] > 255) { currentIP[1] += Math.floor(currentIP[2] / 256); currentIP[2] %= 256; }
+        if (currentIP[1] > 255) { currentIP[0] += Math.floor(currentIP[1] / 256); currentIP[1] %= 256; }
+    });
 
-  for (let i = 0; i < numSubnets; i++) {
-    // Calculate subnet addresses
-    const networkAddressBinary = currentSubnetBinary.slice(0, subnetMaskBits) + "0".repeat(32 - subnetMaskBits);
-    const broadcastAddressBinary = currentSubnetBinary.slice(0, subnetMaskBits) + "1".repeat(32 - subnetMaskBits);
-
-    // Convert binary addresses to decimal
-    const networkAddress = [
-      parseInt(networkAddressBinary.slice(0, 8), 2),
-      parseInt(networkAddressBinary.slice(8, 16), 2),
-      parseInt(networkAddressBinary.slice(16, 24), 2),
-      parseInt(networkAddressBinary.slice(24, 32), 2)
-    ];
-
-    const broadcastAddress = [
-      parseInt(broadcastAddressBinary.slice(0, 8), 2),
-      parseInt(broadcastAddressBinary.slice(8, 16), 2),
-      parseInt(broadcastAddressBinary.slice(16, 24), 2),
-      parseInt(broadcastAddressBinary.slice(24, 32), 2)
-    ];
-
-    // Usable IP range (excluding network and broadcast)
-    const usableRange = `${networkAddress[0]}.${networkAddress[1]}.${networkAddress[2]}.${networkAddress[3] + 1} - ${broadcastAddress[0]}.${broadcastAddress[1]}.${broadcastAddress[2]}.${broadcastAddress[3] - 1}`;
-
-    // Append each subnet's info to the HTML output
-    outputHTML += `<tr><td>${i + 1}</td><td>${networkAddress.join(".")}</td><td>${usableRange}</td><td>${broadcastAddress.join(".")}</td></tr>`;
-
-    // Move to the next subnet by incrementing the last subnet bit
-    let nextSubnetDecimal = parseInt(currentSubnetBinary.slice(0, subnetMaskBits), 2) + 1;
-    currentSubnetBinary = nextSubnetDecimal.toString(2).padStart(subnetMaskBits, "0").padEnd(32, "0");
-  }
-
-  outputHTML += "</table>";
-  resultsDiv.innerHTML += outputHTML;
+    resultsTable += "</table>";
+    document.getElementById("results").innerHTML = resultsTable;
 }
